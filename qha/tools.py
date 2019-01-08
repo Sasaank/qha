@@ -12,7 +12,6 @@ from typing import Callable, Optional
 import numpy as np
 from numba import float64, guvectorize, int64, jit, vectorize
 
-from qha.fitting import polynomial_least_square_fitting
 from qha.grid_interpolation import calculate_eulerian_strain
 from qha.type_aliases import Matrix, Scalar, Vector
 
@@ -251,10 +250,9 @@ def calibrate_energy_on_reference(volumes_before_calibration: Matrix, energies_b
         strains_before_calibration = calculate_eulerian_strain(volumes_before_calibration[i, 0],
                                                                volumes_before_calibration[i])
         strains_after_calibration = calculate_eulerian_strain(volumes_before_calibration[i, 0], volumes_for_reference)
-        _, energies_after_calibration[i, :] = polynomial_least_square_fitting(strains_before_calibration,
-                                                                              energies_before_calibration[i],
-                                                                              strains_after_calibration,
-                                                                              order=order)
+        _, energies_after_calibration[i, :] = np.poly1d(np.polyfit(strains_before_calibration,
+                                                                   energies_before_calibration[i],
+                                                                   order))(strains_after_calibration)
     return energies_after_calibration
 
 
